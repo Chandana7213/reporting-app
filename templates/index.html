@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reporting App</title>
+  <style>
+    :root { --blue:#2E75B6; --navy:#1F3864; --bg:#f4f7fb; --ok:#1E6B3A; --err:#8B1E1E; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: var(--bg);
+           color: #222; margin: 0; padding: 40px 16px; }
+    .card { max-width: 640px; margin: 0 auto 20px; background: #fff;
+            border: 1px solid #dbe4f0; border-radius: 10px; padding: 24px 28px; }
+    h1 { color: var(--navy); margin: 0 0 4px; font-size: 24px; }
+    .sub { color: #667; margin: 0 0 20px; font-size: 14px; }
+    h2 { color: var(--blue); font-size: 16px; margin: 0 0 12px; }
+    label { display: block; font-weight: bold; margin-bottom: 8px; color: var(--navy); }
+    input[type=file] { display: block; margin-bottom: 16px; width: 100%; }
+    button, .btn { background: var(--blue); color: #fff; border: 0; border-radius: 6px;
+            padding: 10px 18px; font-size: 14px; cursor: pointer; text-decoration: none;
+            display: inline-block; }
+    button:hover, .btn:hover { background: var(--navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    td { padding: 7px 6px; border-bottom: 1px solid #eef2f7; }
+    td:first-child { font-weight: bold; color: var(--navy); width: 38%; }
+    .pill { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+    .on  { background: #e1f3e8; color: var(--ok); }
+    .off { background: #fdeaea; color: var(--err); }
+    .flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 14px; }
+    .flash.success { background: #e1f3e8; color: var(--ok); border: 1px solid #b7e0c4; }
+    .flash.error   { background: #fdeaea; color: var(--err); border: 1px solid #f0c0c0; }
+    code { background: #f0f3f8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>&#9729; Reporting App</h1>
+    <p class="sub">A demo service for Cloud Run + Cloud Storage + Cloud SQL.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <h2>Upload a report</h2>
+    <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+      <label for="report">Choose a file (PDF, CSV, anything)</label>
+      <input type="file" name="report" id="report">
+      <button type="submit">Upload</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>System status</h2>
+    <table>
+      <tr>
+        <td>Cloud Storage</td>
+        <td>
+          {% if status.storage == 'enabled' %}<span class="pill on">enabled</span>
+          {% else %}<span class="pill off">local fallback</span>{% endif %}
+          &nbsp; {{ status.bucket }}
+        </td>
+      </tr>
+      <tr>
+        <td>Cloud SQL</td>
+        <td>
+          {% if status.database == 'enabled' %}<span class="pill on">enabled</span>
+          {% else %}<span class="pill off">not configured</span>{% endif %}
+          &nbsp; {{ status.instance }}
+        </td>
+      </tr>
+      <tr><td>Server time</td><td>{{ status.time }}</td></tr>
+    </table>
+    <p style="margin-top:16px;">
+      <a class="btn" href="{{ url_for('dbtest') }}">Run database test &rarr;</a>
+    </p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+# Cloud Build pipeline (Layer 7, Option A - recommended)
+# Triggered on every push to main. Builds the image, pushes it to
+# Artifact Registry, then deploys a new Cloud Run revision.
+#
+# $PROJECT_ID and $SHORT_SHA are provided automatically by Cloud Build.
+# Edit _REGION / _SERVICE / _REPO below to match your setup.
+
+substitutions:
+  _REGION: asia-south1
+  _SERVICE: reporting-app-service
+  _REPO: reporting-app-repo
+
+steps:
+  # 1) Build the container image, tagged with the commit SHA.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - -t
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/reporting-app:$SHORT_SHA
+      - .
+
+  # 2) Push the image to Artifact Registry.
+  - name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/reporting-app:$SHORT_SHA
+
+  # 3) Deploy the new image to Cloud Run.
+  #    The env vars / secret / Cloud SQL connection were set on the service
+  #    during Layer 5-6; --image alone is enough to roll out a new revision.
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/reporting-app:$SHORT_SHA
+      - --region=${_REGION}
+      - --platform=managed
+
+# Record the built image in the build metadata.
+images:
+  - ${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/reporting-app:$SHORT_SHA
+
+options:
+  logging: CLOUD_LOGGING_ONLY
