@@ -1,0 +1,11 @@
+# Never commit secrets or local junk
+.env
+key.json
+*.json.key
+service-account*.json
+__pycache__/
+*.pyc
+venv/
+.venv/
+local_uploads/
+.DS_Store

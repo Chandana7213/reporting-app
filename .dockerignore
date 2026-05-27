@@ -1,0 +1,12 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+.venv/
+local_uploads/
+*.md
+.github/
+key.json
