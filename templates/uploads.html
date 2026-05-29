@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Upload Records - Reporting App</title>
+  <style>
+    :root { --blue:#2E75B6; --navy:#1F3864; --bg:#f4f7fb; --ok:#1E6B3A; --err:#8B1E1E; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, Helvetica, sans-serif; background: var(--bg);
+           color: #222; margin: 0; padding: 40px 16px; }
+    .card { max-width: 900px; margin: 0 auto 20px; background: #fff;
+            border: 1px solid #dbe4f0; border-radius: 10px; padding: 24px 28px; }
+    h1 { color: var(--navy); margin: 0 0 4px; font-size: 24px; }
+    .sub { color: #667; margin: 0 0 20px; font-size: 14px; }
+    h2 { color: var(--blue); font-size: 16px; margin: 0 0 12px; }
+    a.btn { background: var(--blue); color: #fff; border: 0; border-radius: 6px;
+            padding: 10px 18px; font-size: 14px; cursor: pointer; text-decoration: none;
+            display: inline-block; }
+    a.btn:hover { background: var(--navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px; }
+    th { background: #f0f3f8; color: var(--navy); padding: 10px 8px; text-align: left; font-weight: bold; }
+    td { padding: 10px 8px; border-bottom: 1px solid #eef2f7; }
+    tr:hover { background: #f8f9fc; }
+    .pill { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
+    .on  { background: #e1f3e8; color: var(--ok); }
+    .off { background: #fdeaea; color: var(--err); }
+    .flash { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 14px; }
+    .flash.success { background: #e1f3e8; color: var(--ok); border: 1px solid #b7e0c4; }
+    .flash.error   { background: #fdeaea; color: var(--err); border: 1px solid #f0c0c0; }
+    .empty { text-align: center; color: #999; padding: 30px; }
+    .back-link { margin-top: 20px; }
+    code { background: #f0f3f8; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📁 Upload Records</h1>
+    <p class="sub">All files uploaded via the reporting app, stored in both Cloud Storage and Cloud SQL.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if error %}
+      <div class="flash error">{{ error }}</div>
+    {% endif %}
+
+    <h2>System Status</h2>
+    <table>
+      <tr>
+        <td style="width: 30%; font-weight: bold; color: var(--navy);">Cloud Storage</td>
+        <td>
+          {% if status.storage == 'enabled' %}<span class="pill on">enabled</span>
+          {% else %}<span class="pill off">local fallback</span>{% endif %}
+          &nbsp; {{ status.bucket }}
+        </td>
+      </tr>
+      <tr>
+        <td style="font-weight: bold; color: var(--navy);">Cloud SQL</td>
+        <td>
+          {% if status.database == 'enabled' %}<span class="pill on">enabled</span>
+          {% else %}<span class="pill off">not configured</span>{% endif %}
+          &nbsp; {{ status.instance }}
+        </td>
+      </tr>
+    </table>
+
+    <h2 style="margin-top: 30px;">Upload History</h2>
+    
+    {% if uploads %}
+      <p style="color: #667; font-size: 14px;">{{ uploads|length }} file(s) recorded in the database:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Filename</th>
+            <th>Location (Cloud Storage / Local)</th>
+            <th>Size</th>
+            <th>Uploaded At</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for upload in uploads %}
+            <tr>
+              <td>#{{ upload.id }}</td>
+              <td><strong>{{ upload.filename }}</strong></td>
+              <td><code>{{ upload.gcs_path }}</code></td>
+              <td>{{ upload.size_mb }} MB</td>
+              <td>{{ upload.uploaded_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <div class="empty">
+        <p>No uploads recorded yet.</p>
+        <p><a class="btn" href="{{ url_for('home') }}">Go upload a file &rarr;</a></p>
+      </div>
+    {% endif %}
+
+    <div class="back-link">
+      <a class="btn" href="{{ url_for('home') }}">← Back to home</a>
+    </div>
+  </div>
+</body>
+</html>
